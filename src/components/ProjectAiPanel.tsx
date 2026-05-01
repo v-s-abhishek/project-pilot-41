@@ -19,6 +19,25 @@ const SUGGESTIONS = [
   "How do I add a team member?",
 ];
 
+function normalizeAssistantMessage(content: unknown): string {
+  if (typeof content === "string") {
+    const cleaned = content.trim();
+    return cleaned || "I couldn't generate a visible reply. Please try again.";
+  }
+
+  if (Array.isArray(content)) {
+    const cleaned = content.map(normalizeAssistantMessage).join("\n").trim();
+    return cleaned || "I couldn't generate a visible reply. Please try again.";
+  }
+
+  if (content && typeof content === "object") {
+    const record = content as Record<string, unknown>;
+    return normalizeAssistantMessage(record.text ?? record.content ?? record.output_text ?? "");
+  }
+
+  return "I couldn't generate a visible reply. Please try again.";
+}
+
 export function ProjectAiPanel({ projectId }: { projectId?: string }) {
   const [open, setOpen] = useState(true);
   const [input, setInput] = useState("");
@@ -30,7 +49,7 @@ export function ProjectAiPanel({ projectId }: { projectId?: string }) {
     mutationFn: async (q: string) => {
       const history = messages.slice(-10);
       const res = await askFn({ data: { projectId, question: q, history } });
-      return res;
+      return { ...res, reply: normalizeAssistantMessage(res?.reply) };
     },
     onSuccess: (res) => {
       setMessages((m) => [...m, { role: "assistant", content: res.reply }]);

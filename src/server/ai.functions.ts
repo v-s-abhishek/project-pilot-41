@@ -25,6 +25,54 @@ type AnalysisContext = {
   members: Array<{ name: string; email: string; role: string }>;
 };
 
+function extractTextContent(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => extractTextContent(item))
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+  }
+
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+
+    if (typeof record.text === "string") return record.text;
+    if (typeof record.content === "string") return record.content;
+    if (typeof record.output_text === "string") return record.output_text;
+
+    if (record.content) return extractTextContent(record.content);
+    if (record.parts) return extractTextContent(record.parts);
+    if (record.texts) return extractTextContent(record.texts);
+  }
+
+  return "";
+}
+
+function extractReplyFromAiPayload(payload: unknown): string {
+  if (!payload || typeof payload !== "object") return "";
+
+  const json = payload as Record<string, unknown>;
+  const choices = Array.isArray(json.choices) ? json.choices : [];
+  const firstChoice = choices[0] as Record<string, unknown> | undefined;
+
+  const fromChoice =
+    extractTextContent(firstChoice?.message) ||
+    extractTextContent(firstChoice?.delta) ||
+    extractTextContent(firstChoice?.content);
+
+  const fromTopLevel =
+    extractTextContent(json.output_text) ||
+    extractTextContent(json.output) ||
+    extractTextContent(json.content) ||
+    extractTextContent(json.candidates);
+
+  return (fromChoice || fromTopLevel).trim();
+}
+
 export const askProjectAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
@@ -115,10 +163,16 @@ ${ctx.tasks.slice(0, 20).map((t) => `- [${t.status}] (${t.priority}) ${t.title}$
       }
 
       const json = await res.json();
-      const reply =
-        json?.choices?.[0]?.message?.content ??
-        json?.choices?.[0]?.delta?.content ??
-        "I couldn't generate a response. Please try rephrasing.";
+      const reply = extractReplyFromAiPayload(json);
+
+      if (!reply) {
+        console.error("AI returned no readable text:", JSON.stringify(json).slice(0, 1200));
+        return {
+          reply: "I couldn't generate a visible response just now. Please try again.",
+          error: true,
+        };
+      }
+
       return { reply, error: false };
     } catch (e) {
       console.error("askProjectAi failed:", e);
