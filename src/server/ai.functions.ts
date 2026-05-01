@@ -97,7 +97,7 @@ ${ctx.tasks.slice(0, 20).map((t) => `- [${t.status}] (${t.priority}) ${t.title}$
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-2.5-flash",
           messages: [
             { role: "system", content: systemPrompt },
             ...data.history,
