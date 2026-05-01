@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowLeft, UserPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ProjectAiPanel } from "@/components/ProjectAiPanel";
 
 type Status = "todo" | "in_progress" | "review" | "done";
 type Priority = "low" | "medium" | "high" | "urgent";
@@ -182,6 +183,8 @@ function ProjectDetail() {
           ))}
         </CardContent>
       </Card>
+
+      <ProjectAiPanel projectId={projectId} />
     </AppShell>
   );
 }
