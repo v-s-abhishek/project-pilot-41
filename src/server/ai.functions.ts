@@ -14,7 +14,7 @@ const InputSchema = z.object({
 });
 
 type AnalysisContext = {
-  project?: { title: string; description: string | null; status: string | null } | null;
+  project?: { title: string; description: string | null } | null;
   tasks: Array<{
     title: string;
     status: string;
@@ -39,7 +39,7 @@ export const askProjectAi = createServerFn({ method: "POST" })
 
     if (data.projectId) {
       const [{ data: project }, { data: tasks }, { data: members }] = await Promise.all([
-        supabase.from("projects").select("title,description,status").eq("id", data.projectId).maybeSingle(),
+        supabase.from("projects").select("title,description").eq("id", data.projectId).maybeSingle(),
         supabase.from("tasks").select("title,status,priority,due_date,assigned_to").eq("project_id", data.projectId),
         supabase.from("project_members").select("user_id,role").eq("project_id", data.projectId),
       ]);
@@ -80,7 +80,6 @@ App features the user can use:
 ${ctx.project ? `### Current Project Context
 Title: ${ctx.project.title}
 Description: ${ctx.project.description || "(none)"}
-Status: ${ctx.project.status || "active"}
 Total tasks: ${ctx.tasks.length}
 By status: ${JSON.stringify(byStatus)}
 Overdue tasks: ${overdue}
