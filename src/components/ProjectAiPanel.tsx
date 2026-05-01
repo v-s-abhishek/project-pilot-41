@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { askProjectAi } from "@/server/ai.functions";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,13 +43,24 @@ export function ProjectAiPanel({ projectId }: { projectId?: string }) {
   const [open, setOpen] = useState(true);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
+  const { session, loading } = useAuth();
   const askFn = useServerFn(askProjectAi);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const ask = useMutation({
     mutationFn: async (q: string) => {
+      if (!session?.access_token) {
+        throw new Error("Your session is not ready yet. Please wait a moment and try again.");
+      }
+
       const history = messages.slice(-10);
-      const res = await askFn({ data: { projectId, question: q, history } });
+      const res = await askFn({
+        data: { projectId, question: q, history },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
       return { ...res, reply: normalizeAssistantMessage(res?.reply) };
     },
     onSuccess: (res) => {
@@ -64,7 +76,13 @@ export function ProjectAiPanel({ projectId }: { projectId?: string }) {
 
   const send = (text: string) => {
     const q = text.trim();
-    if (!q || ask.isPending) return;
+    if (!q || ask.isPending || loading) return;
+
+    if (!session?.access_token) {
+      toast.error("Please sign in again to use the AI assistant.");
+      return;
+    }
+
     setMessages((m) => [...m, { role: "user", content: q }]);
     setInput("");
     ask.mutate(q);
@@ -149,10 +167,10 @@ export function ProjectAiPanel({ projectId }: { projectId?: string }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about this project, tasks, or how the app works…"
-              disabled={ask.isPending}
+              disabled={ask.isPending || loading || !session?.access_token}
               maxLength={2000}
             />
-            <Button type="submit" size="icon" disabled={ask.isPending || !input.trim()}>
+            <Button type="submit" size="icon" disabled={ask.isPending || loading || !session?.access_token || !input.trim()}>
               {ask.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
