@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, Send, Loader2, Bot, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -79,13 +81,17 @@ export function ProjectAiPanel({ projectId }: { projectId?: string }) {
                   </div>
                 )}
                 <div
-                  className={`rounded-lg px-3 py-2 text-sm max-w-[80%] whitespace-pre-wrap ${
+                  className={`rounded-lg px-3 py-2 text-sm max-w-[80%] ${
                     m.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card border"
+                      ? "bg-primary text-primary-foreground whitespace-pre-wrap"
+                      : "bg-card border prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-2"
                   }`}
                 >
-                  {m.content}
+                  {m.role === "assistant" ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                  ) : (
+                    m.content
+                  )}
                 </div>
                 {m.role === "user" && (
                   <div className="h-7 w-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
