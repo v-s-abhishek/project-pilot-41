@@ -81,14 +81,16 @@ export function ProjectAiPanel({ projectId }: { projectId?: string }) {
                   </div>
                 )}
                 <div
-                  className={`rounded-lg px-3 py-2 text-sm max-w-[80%] ${
+                  className={`rounded-lg px-3 py-2 text-sm max-w-[80%] break-words ${
                     m.role === "user"
                       ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                      : "bg-card border prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-2"
+                      : "bg-card border text-foreground"
                   }`}
                 >
                   {m.role === "assistant" ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    <div className="space-y-2 [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_strong]:font-semibold [&_h1]:text-base [&_h1]:font-semibold [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-semibold [&_code]:bg-muted [&_code]:px-1 [&_code]:rounded [&_code]:text-xs [&_a]:text-primary [&_a]:underline">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    </div>
                   ) : (
                     m.content
                   )}
