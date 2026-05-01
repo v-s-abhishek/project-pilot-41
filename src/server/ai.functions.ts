@@ -111,11 +111,14 @@ ${ctx.tasks.slice(0, 20).map((t) => `- [${t.status}] (${t.priority}) ${t.title}$
       if (!res.ok) {
         const t = await res.text();
         console.error("AI gateway error:", res.status, t);
-        return { reply: "AI service error. Please try again.", error: true };
+        return { reply: `AI service error (${res.status}): ${t.slice(0, 300)}`, error: true };
       }
 
       const json = await res.json();
-      const reply = json?.choices?.[0]?.message?.content ?? "No response.";
+      const reply =
+        json?.choices?.[0]?.message?.content ??
+        json?.choices?.[0]?.delta?.content ??
+        "I couldn't generate a response. Please try rephrasing.";
       return { reply, error: false };
     } catch (e) {
       console.error("askProjectAi failed:", e);
