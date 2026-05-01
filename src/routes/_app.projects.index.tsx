@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, FolderKanban } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/projects")({
+export const Route = createFileRoute("/_app/projects/")({
   component: ProjectsPage,
 });
 
