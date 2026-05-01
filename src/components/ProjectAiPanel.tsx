@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, Send, Loader2, Bot, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
