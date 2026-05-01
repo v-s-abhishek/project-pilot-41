@@ -273,11 +273,13 @@ function AddMemberDialog({ projectId }: { projectId: string }) {
 
   const add = useMutation({
     mutationFn: async () => {
-      const { data: profs, error: e1 } = await supabase.from("profiles").select("id,email").eq("email", email.trim().toLowerCase()).limit(1);
+      const cleanEmail = email.trim().toLowerCase();
+      if (!cleanEmail) throw new Error("Email required");
+      const { data: foundId, error: e1 } = await supabase.rpc("find_user_id_by_email", { _email: cleanEmail });
       if (e1) throw e1;
-      if (!profs?.length) throw new Error("No user with that email. They must sign up first.");
+      if (!foundId) throw new Error("No user with that email. They must sign up first.");
       const { error } = await supabase.from("project_members").insert({
-        project_id: projectId, user_id: profs[0].id, role,
+        project_id: projectId, user_id: foundId as string, role,
       });
       if (error) throw error;
     },
