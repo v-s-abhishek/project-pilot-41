@@ -159,7 +159,7 @@ ${ctx.tasks.slice(0, 20).map((t) => `- [${t.status}] (${t.priority}) ${t.title}$
       if (!res.ok) {
         const t = await res.text();
         console.error("AI gateway error:", res.status, t);
-        return { reply: `AI service error (${res.status}): ${t.slice(0, 300)}`, error: true };
+        return { reply: "The AI service encountered an error. Please try again later.", error: true };
       }
 
       const json = await res.json();
