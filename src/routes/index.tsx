@@ -1,7 +1,9 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckSquare, BarChart3, Users, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { IntroAnimation } from "@/components/IntroAnimation";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
@@ -12,8 +14,22 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = sessionStorage.getItem("taskhive_intro_seen");
+    if (!seen) setShowIntro(true);
+  }, []);
+
+  const handleIntroDone = () => {
+    sessionStorage.setItem("taskhive_intro_seen", "1");
+    setShowIntro(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      {showIntro && <IntroAnimation onDone={handleIntroDone} />}
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-2">
